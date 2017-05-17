@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.HashMap;
+
 /**
  * An example SurfaceView for generating graphics on
  * @author Joel Ross
@@ -32,6 +34,8 @@ public class DrawingSurfaceView extends SurfaceView implements SurfaceHolder.Cal
 
     public Ball ball; //public for easy access
 
+    public HashMap<Integer, Ball> touches;
+
 
     /**
      * We need to override all the constructors, since we don't know which will be called
@@ -47,6 +51,8 @@ public class DrawingSurfaceView extends SurfaceView implements SurfaceHolder.Cal
     public DrawingSurfaceView(Context context, AttributeSet attrs, int defaultStyle) {
         super(context, attrs, defaultStyle);
 
+        Log.v(TAG, "Using surface");
+
         viewWidth = 1; viewHeight = 1; //positive defaults; will be replaced when #surfaceChanged() is called
 
         // register our interest in hearing about changes to our surface
@@ -60,6 +66,8 @@ public class DrawingSurfaceView extends SurfaceView implements SurfaceHolder.Cal
         whitePaint.setColor(Color.WHITE);
         goldPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         goldPaint.setColor(Color.rgb(145, 123, 76));
+
+        touches = new HashMap<>();
 
         init();
     }
@@ -118,7 +126,10 @@ public class DrawingSurfaceView extends SurfaceView implements SurfaceHolder.Cal
 
         canvas.drawColor(Color.rgb(51,10,111)); //purple out the background
 
-        canvas.drawCircle(ball.cx, ball.cy, ball.radius, whitePaint); //we can draw directly onto the canvas
+        for (Ball ball : touches.values()) {
+            canvas.drawCircle(ball.cx, ball.cy, ball.radius, whitePaint); //we can draw directly onto the canvas
+        }
+
     }
 
 
@@ -158,6 +169,26 @@ public class DrawingSurfaceView extends SurfaceView implements SurfaceHolder.Cal
             }
         }
         Log.d(TAG, "Drawing thread shut down");
+    }
+
+    public synchronized void addTouch(int id, float x, float y) {
+        Ball ball = new Ball(x, y, 100);
+        touches.put(id, ball);
+    }
+
+    public synchronized void removeTouch(int id) {
+        try {
+            touches.remove(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.v(TAG, touches.keySet().toString());
+        }
+    }
+
+    public synchronized void moveTouch(int id, float x, float y) {
+        Ball ball = touches.get(id);
+        ball.setX(x);
+        ball.setY(y);
     }
 
     /**

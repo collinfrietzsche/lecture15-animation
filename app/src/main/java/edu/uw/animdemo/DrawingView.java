@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 /**
@@ -40,6 +41,8 @@ public class DrawingView extends View {
 
     public DrawingView(Context context, AttributeSet attrs, int defaultStyle) {
         super(context, attrs, defaultStyle);
+
+        Log.v(TAG, "Using Drawing View");
 
         viewWidth = 1; viewHeight = 1; //positive defaults; will be replaced when #onSizeChanged() is called
 

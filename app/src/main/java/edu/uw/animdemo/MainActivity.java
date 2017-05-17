@@ -2,7 +2,6 @@ package edu.uw.animdemo;
 
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.GestureDetectorCompat;
@@ -43,35 +42,40 @@ public class MainActivity extends AppCompatActivity {
 
         boolean gesture = mDetector.onTouchEvent(event); //ask the detector to handle instead
         //if(gesture) return true; //if we don't also want to handle
+        int pointerIndex = MotionEventCompat.getActionIndex(event);
+        int pointerID = MotionEventCompat.getPointerId(event, pointerIndex);
 
-        float x = event.getX();
-        float y = event.getY() - getSupportActionBar().getHeight(); //closer to center...
+        float x = event.getX(pointerIndex);
+        float y = event.getY(pointerIndex) - getSupportActionBar().getHeight(); //closer to center...
 
         int action = MotionEventCompat.getActionMasked(event);
         switch(action) {
             case (MotionEvent.ACTION_DOWN) : //put finger down
                 //Log.v(TAG, "finger down");
-
-                ObjectAnimator xAnim = ObjectAnimator.ofFloat(view.ball, "x", x);
-                xAnim.setDuration(1000);
-                ObjectAnimator yAnim = ObjectAnimator.ofFloat(view.ball, "y", y);
-                yAnim.setDuration(1500); //y moves 1.5x slower
-
-                AnimatorSet set = new AnimatorSet();
-                set.playTogether(yAnim, xAnim);
-                set.start();
-
-//                view.ball.cx = x;
-//                view.ball.cy = y;
-//                view.ball.dx = (x - view.ball.cx)/Math.abs(x - view.ball.cx)*30;
-//                view.ball.dy = (y - view.ball.cy)/Math.abs(y - view.ball.cy)*30;
+                view.addTouch(pointerID, x, y);
+                Log.v(TAG, "Index: "+pointerIndex+", ID: "+MotionEventCompat.getPointerId(event, pointerIndex)+", X: "+x+"Y: "+y);
+                return true;
+            case (MotionEvent.ACTION_POINTER_DOWN):
+                view.addTouch(MotionEventCompat.getPointerId(event, pointerIndex), x, y);
+                Log.v(TAG, "Index: "+pointerIndex+", ID: "+MotionEventCompat.getPointerId(event, pointerIndex)+", X: "+x+"Y: "+y);
+                return true;
+            case (MotionEvent.ACTION_POINTER_UP):
+                view.removeTouch(MotionEventCompat.getPointerId(event, pointerIndex));
+                Log.v(TAG, "Index: "+pointerIndex+", ID: "+MotionEventCompat.getPointerId(event, pointerIndex)+", X: "+x+"Y: "+y);
+                return true;
+            case (MotionEvent.ACTION_UP) : //lift finger up
+                view.removeTouch(pointerID);
+                Log.v(TAG, "Index: "+pointerIndex+", ID: "+MotionEventCompat.getPointerId(event, pointerIndex)+", X: "+x+"Y: "+y);
                 return true;
             case (MotionEvent.ACTION_MOVE) : //move finger
                 //Log.v(TAG, "finger move");
-//                view.ball.cx = x;
-//                view.ball.cy = y;
+                for (int i = 0; i < event.getPointerCount(); i++) {
+                    int tempID = event.getPointerId(i);
+                    float tempX = event.getX(i);
+                    float tempY = event.getY(i) - getSupportActionBar().getHeight();
+                    view.moveTouch(tempID, tempX, tempY);
+                }
                 return true;
-            case (MotionEvent.ACTION_UP) : //lift finger up
             case (MotionEvent.ACTION_CANCEL) : //aborted gesture
             case (MotionEvent.ACTION_OUTSIDE) : //outside bounds
             default :
